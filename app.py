@@ -13,15 +13,6 @@ st.set_page_config(
     page_title="School System",
     layout="wide"
 )
-# =========================
-# 🟢 إخفاء Streamlit UI (نسخة آمنة)
-# =========================
-st.markdown("""
-<style>
-footer {visibility: hidden;}
-header {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
 
 # =========================
 # 🟢 إنشاء admin أول مرة
