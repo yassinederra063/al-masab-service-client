@@ -13,17 +13,13 @@ st.set_page_config(
     page_title="School System",
     layout="wide"
 )
-
-# 🔴 زيد هذا الكود هنا
+# =========================
+# 🟢 إخفاء Streamlit UI (نسخة آمنة)
+# =========================
 st.markdown("""
 <style>
-#MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
-[data-testid="stToolbar"] {display: none;}
-[data-testid="stDecoration"] {display: none;}
-[data-testid="stStatusWidget"] {display: none;}
-[data-testid="stDeployButton"] {display: none;}
 </style>
 """, unsafe_allow_html=True)
 
