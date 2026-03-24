@@ -14,6 +14,19 @@ st.set_page_config(
     layout="wide"
 )
 
+# 🔴 زيد هذا الكود هنا
+st.markdown("""
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+[data-testid="stToolbar"] {display: none;}
+[data-testid="stDecoration"] {display: none;}
+[data-testid="stStatusWidget"] {display: none;}
+[data-testid="stDeployButton"] {display: none;}
+</style>
+""", unsafe_allow_html=True)
+
 # =========================
 # 🟢 إنشاء admin أول مرة
 # =========================
