@@ -22,10 +22,13 @@ def prof_panel():
 
     period = st.radio("الفترة", ["صباحية", "مسائية"], horizontal=True)
 
+    # 👇 دمج السلك + القسم
+    full_class = f"{level} {class_num}"
+
     if st.button("🔍 بحث"):
         result = conn.execute(text("""
             SELECT id FROM classes WHERE level=:level AND class_num=:class_num
-        """), {"level": level, "class_num": class_num}).fetchone()
+        """), {"level": level, "class_num": full_class}).fetchone()
 
         if result:
             st.session_state.class_id = result[0]
@@ -39,10 +42,11 @@ def prof_panel():
         st.divider()
         c_id = st.session_state.class_id
         
+        # 👇 نجيبو جميع التلاميذ (حتى الموقوفين)
         students = pd.read_sql(text("""
-            SELECT id, name, lastname 
+            SELECT id, name, lastname, status 
             FROM students 
-            WHERE class_id=:id AND status='active'
+            WHERE class_id=:id
         """), conn, params={"id": c_id})
         
         absent_this_session = pd.read_sql(text("""
@@ -68,16 +72,26 @@ def prof_panel():
         for i, row in students.iterrows():
             col_n, col_btn = st.columns([4, 1])
             
+            is_stopped = row['status'] == "stopped_by_admin"
             is_recorded_now = row['id'] in absent_this_session
             is_absent_before = row['id'] in absent_other_sessions
             is_selected = row['id'] in st.session_state.temp_absents
             
-            bg_color = "#FF4B4B" if (is_recorded_now or is_absent_before or is_selected) else "#f9f9f9"
-            text_color = "white" if bg_color == "#FF4B4B" else "black"
+            # 👇 ألوان
+            if is_stopped:
+                bg_color = "#808080"
+                text_color = "white"
+            else:
+                bg_color = "#FF4B4B" if (is_recorded_now or is_absent_before or is_selected) else "#f9f9f9"
+                text_color = "white" if bg_color == "#FF4B4B" else "black"
             
             status_info = ""
-            if is_recorded_now: status_info = " (مسجل الآن)"
-            elif is_absent_before: status_info = " (غائب سابقاً)"
+            if is_stopped:
+                status_info = " (🚫 موقوف من الإدارة)"
+            elif is_recorded_now:
+                status_info = " (مسجل الآن)"
+            elif is_absent_before:
+                status_info = " (غائب سابقاً)"
 
             col_n.markdown(f"""
                 <div style="padding:12px;border-radius:8px;border:1px solid #ddd;
@@ -87,7 +101,9 @@ def prof_panel():
             """, unsafe_allow_html=True)
             
             with col_btn:
-                if is_recorded_now:
+                if is_stopped:
+                    st.button("🚫", key=f"stop_{row['id']}", disabled=True)
+                elif is_recorded_now:
                     st.button("🔒", key=f"lock_{row['id']}", disabled=True)
                 else:
                     label = "إلغاء" if is_selected else "غائب 🔴"

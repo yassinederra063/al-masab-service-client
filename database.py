@@ -8,18 +8,20 @@ DATABASE_URL = "postgresql://postgres.apvevjmtittiutcizgwt:Mamaty12..a@aws-1-eu-
 
 engine = create_engine(DATABASE_URL)
 
-# 🔥 رجعناها باش باقي الملفات يخدمو
+# =========================
+# 🔌 CONNECTION
+# =========================
 def get_connection():
     return engine.connect()
 
 # =========================
-# USERS
+# 👤 USERS
 # =========================
 
 def load_users():
     return pd.read_sql("SELECT * FROM users", engine)
 
-def save_user(login, password, role, name, lastname, phone, subject):
+def save_user(login, password, role, name, lastname, phone=None, subject=None):
     query = text("""
         INSERT INTO users (login, password, role, name, lastname, phone, subject, status)
         VALUES (:login,:password,:role,:name,:lastname,:phone,:subject,'active')
@@ -38,7 +40,20 @@ def save_user(login, password, role, name, lastname, phone, subject):
         conn.commit()
 
 # =========================
-# SYSTEM STATUS
+# 🆕 👨‍👩‍👧‍👦 CREATE PARENT ACCOUNT
+# =========================
+def create_parent_account():
+    query = text("""
+        INSERT INTO users (login, password, role, name, lastname, status)
+        VALUES ('parent@test', '1234', 'parents', 'Parent', 'User', 'active')
+    """)
+
+    with engine.connect() as conn:
+        conn.execute(query)
+        conn.commit()
+
+# =========================
+# 🔌 SYSTEM STATUS
 # =========================
 
 def get_system_status():

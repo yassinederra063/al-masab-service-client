@@ -5,6 +5,7 @@ from admin import admin_panel
 from prof import prof_panel
 from surveillant import surveillant_panel
 from directeur import directeur_panel
+from parents import parents_panel
 
 # =========================
 # 🟢 إعداد الصفحة
@@ -75,6 +76,9 @@ else:
 
     elif role == "directeur":
         directeur_panel()
+
+    elif role == "parents":
+        parents_panel(st.session_state["login_user"])
 
     else:
         st.error("❌ دور غير معروف")

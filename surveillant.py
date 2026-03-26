@@ -14,6 +14,9 @@ def surveillant_panel():
     with col2:
         class_num = st.text_input("رقم القسم")
 
+    # 👇 دمج السلك + القسم
+    full_class = f"{level} {class_num}"
+
     if st.button("🔎 بحث"):
         st.session_state.view_class = True
     
@@ -21,7 +24,8 @@ def surveillant_panel():
         st.divider()
         
         query = text("""
-            SELECT a.id as abs_id, s.id as std_id, s.name, s.lastname, a.date, a.session, a.period, a.allowed
+            SELECT a.id as abs_id, s.id as std_id, s.name, s.lastname, s.status,
+                   a.date, a.session, a.period, a.allowed
             FROM attendance a
             JOIN students s ON a.student_id = s.id
             JOIN classes c ON s.class_id = c.id
@@ -31,13 +35,13 @@ def surveillant_panel():
 
         df = pd.read_sql(query, conn, params={
             "level": level,
-            "class_num": class_num
+            "class_num": full_class
         })
 
         if df.empty:
             st.success("✅ لا يوجد سجل غياب لهذا القسم.")
         else:
-            students_with_abs = df[['std_id', 'name', 'lastname']].drop_duplicates()
+            students_with_abs = df[['std_id', 'name', 'lastname', 'status']].drop_duplicates()
 
             for _, std in students_with_abs.iterrows():
                 unallowed_abs = df[(df['std_id'] == std['std_id']) & (df['allowed'] == 0)]
@@ -45,9 +49,18 @@ def surveillant_panel():
 
                 total_hours = len(unallowed_abs)
 
-                with st.expander(f"👤 {std['name']} {std['lastname']} | الساعات غير المبررة: {total_hours}"):
+                is_stopped = std['status'] == "stopped_by_admin"
+
+                title = f"👤 {std['name']} {std['lastname']} | الساعات غير المبررة: {total_hours}"
+                if is_stopped:
+                    title += " 🚫 (موقوف من الإدارة)"
+
+                with st.expander(title):
                     
-                    if total_hours > 0:
+                    if is_stopped:
+                        st.error("🚫 هذا التلميذ موقوف من طرف المدير ولا يمكن السماح له بالدخول")
+                    
+                    elif total_hours > 0:
                         st.markdown("<h4 style='color:red;'>⏳ غيابات تنتظر السماح بالدخول</h4>", unsafe_allow_html=True)
                         
                         dates = unallowed_abs['date'].unique()
